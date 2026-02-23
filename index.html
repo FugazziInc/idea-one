@@ -267,19 +267,12 @@
           errors.push('ERR_REQUIRED_ROLE_MISSING');
           continue;
         }
-        if (selected.length < cap) {
+        if (selected.length < maxAgents) {
           selected.push(ownerRole);
           usedRoleIds.add(ownerRoleId);
           continue;
         }
-        const replaceIdx = selected.findIndex(r => !required.has(r.id) && !requiredOwnerRoleIds.has(r.id));
-        if (replaceIdx >= 0){
-          usedRoleIds.delete(selected[replaceIdx].id);
-          selected[replaceIdx] = ownerRole;
-          usedRoleIds.add(ownerRoleId);
-        } else {
-          errors.push('ERR_REQUIRED_ROLE_MISSING');
-        }
+        errors.push('ERR_REQUIRED_ROLE_MISSING');
       }
 
       for(const process of requiredProcesses){
