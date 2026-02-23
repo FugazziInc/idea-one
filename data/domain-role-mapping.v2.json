@@ -1,0 +1,51 @@
+{
+  "activeDomain": "saas_software",
+  "domains": {
+    "saas_software": {
+      "enabled": true,
+      "allowedRoleIds": [
+        "role_ceo_strategist","role_revenue_ops","role_sales_closer","role_growth_marketer","role_lifecycle_marketer","role_demand_gen_manager","role_product_manager","role_onboarding_mgr","role_customer_success_mgr","role_support_lead","role_product_feedback_analyst","role_data_analyst","role_ops_automation"
+      ],
+      "requiredRoleIds": ["role_ceo_strategist","role_revenue_ops","role_product_manager","role_support_lead"],
+      "requiredProcessIds": ["proc_lead_to_close","proc_onboarding","proc_support_resolution"],
+      "maxCrossDomainUniversalRoles": 1,
+      "domainPurityThreshold": 0.9
+    },
+    "ecommerce": {
+      "enabled": true,
+      "allowedRoleIds": [
+        "role_ceo_strategist","role_growth_marketer","role_paid_media_buyer","role_email_marketer","role_content_operator","role_operations_manager","role_support_lead","role_finance_controller","role_data_analyst"
+      ],
+      "requiredRoleIds": ["role_growth_marketer","role_operations_manager","role_support_lead"],
+      "requiredProcessIds": ["proc_demand_to_checkout","proc_support_resolution","proc_content_growth"],
+      "maxCrossDomainUniversalRoles": 1,
+      "domainPurityThreshold": 0.9
+    },
+    "agency_services": {
+      "enabled": true,
+      "allowedRoleIds": [
+        "role_ceo_strategist","role_sales_closer","role_account_manager","role_project_manager","role_operations_manager","role_finance_controller","role_content_operator","role_data_analyst"
+      ],
+      "requiredRoleIds": ["role_sales_closer","role_project_manager","role_account_manager"],
+      "requiredProcessIds": ["proc_lead_to_close","proc_client_delivery","proc_renewal"],
+      "maxCrossDomainUniversalRoles": 1,
+      "domainPurityThreshold": 0.9
+    },
+    "marketplace": { "enabled": false },
+    "healthcare": { "enabled": false },
+    "fintech": { "enabled": false },
+    "logistics": { "enabled": false },
+    "education": { "enabled": false }
+  },
+  "validation": {
+    "rejectIfDomainPurityBelowThreshold": true,
+    "rejectIfRequiredRoleMissing": true,
+    "rejectIfRequiredProcessMissing": true,
+    "errorCodes": [
+      "ERR_DOMAIN_ROLE_MISMATCH",
+      "ERR_REQUIRED_ROLE_MISSING",
+      "ERR_REQUIRED_PROCESS_MISSING",
+      "ERR_DOMAIN_PURITY_LOW"
+    ]
+  }
+}

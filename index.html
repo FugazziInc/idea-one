@@ -1,32 +1,37 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fugazzi â€” Launch a Virtual Company in Minutes</title>
+  <title>Fugazzi - Launch a Virtual Company in Minutes</title>
   <style>
     :root{--bg:#070b16;--panel:#0f162d;--panel2:#131d3b;--text:#ecf1ff;--muted:#9fb0da;--brand:#6d7cff;--brand2:#22d3ee;--ok:#34d399;--line:#2a3769}
-    *{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial;background:radial-gradient(1200px 560px at 85% -20%,#2f45a3 0,#070b16 62%);color:var(--text)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,Segoe UI,Arial;background:radial-gradient(1200px 560px at 85% -20%,#2f45a3 0,#070b16 62%);color:var(--text)}
     .wrap{max-width:1120px;margin:0 auto;padding:24px}.hero{padding:56px 0 20px}
     h1{font-size:46px;line-height:1.05;margin:0 0 12px;max-width:760px}.sub{color:var(--muted);font-size:18px;max-width:760px}
     .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;margin-top:22px}.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 10px 40px #0004}
     h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted);font-size:13px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
-    label{font-size:12px;color:#b9c7ef;margin:0 0 6px;display:block}input,select,button{width:100%;padding:11px 12px;border-radius:11px;border:1px solid #32447d;background:#0c1430;color:var(--text)}
+    label{font-size:12px;color:#b9c7ef;margin:0 0 6px;display:block}
+    input,select,button{width:100%;padding:11px 12px;border-radius:11px;border:1px solid #32447d;background:#0c1430;color:var(--text)}
     input[type=range]{padding:0}button{border:0;background:linear-gradient(90deg,var(--brand),var(--brand2));font-weight:800;cursor:pointer}button:hover{filter:brightness(1.08)}
-    .chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:6px 10px;border:1px solid #365090;background:#12204a;border-radius:999px;font-size:12px;cursor:pointer;user-select:none}.chip.active{border-color:#70d6ff;background:#16356c}
-    details{margin:10px 0 4px} summary{cursor:pointer;color:#c7d3f6;font-size:13px}
     .preview{min-height:360px;display:flex;flex-direction:column;gap:12px}.progress{height:10px;border-radius:999px;background:#0c1330;border:1px solid #2c3d73;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#6d7cff,#34d399);transition:width .45s ease}
     .log{background:#0b132d;border:1px dashed #30406f;border-radius:12px;padding:10px;min-height:120px;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:#b8c8f3;white-space:pre-line}
     .company{display:none;border:1px solid #2f4d86;background:#0f2047;border-radius:14px;padding:14px}.company h3{margin:0 0 8px}
     .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.kpi{background:#0b1738;border:1px solid #324c86;padding:10px;border-radius:10px}.kpi .n{font-size:20px;font-weight:800}
     .proof{display:none;background:#0b1738;border:1px solid #35569a;border-radius:12px;padding:12px}.proof ul{margin:8px 0 0 18px;padding:0}
+    .processList{margin-top:10px;display:grid;gap:8px}
+    .processItem{background:#0d1d44;border:1px solid #35569a;border-radius:10px;padding:8px;font-size:12px}
     .rolesGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-    .roleCard{background:#0d1d44;border:1px solid #35569a;border-radius:10px;padding:8px}
-    .roleCard .title{font-weight:700;font-size:13px}
-    .roleCard .soul{font-size:12px;color:#a9bbe9}
-    .trust{display:none;background:#0c1737;border:1px solid #345393;border-radius:12px;padding:10px}.trust ul{margin:6px 0 0 18px;padding:0}
+    .roleCard{background:#0d1d44;border:1px solid #35569a;border-radius:10px;padding:8px;cursor:pointer}
+    .roleCard .title{font-weight:700;font-size:13px}.roleCard .soul{font-size:12px;color:#a9bbe9}
     .finalize{display:none;margin-top:8px}.ok{color:var(--ok);font-weight:700}.footer{margin:22px 0 8px;color:#8ca0d1;font-size:12px}
-    @media(max-width:960px){.grid{grid-template-columns:1fr}h1{font-size:34px}.row{grid-template-columns:1fr}}
+    .roleDrawer{position:fixed;inset:0;background:#020617e6;display:none;align-items:center;justify-content:center;padding:20px;z-index:1000}
+    .roleDrawer.open{display:flex}
+    .rolePanel{max-width:900px;max-height:90vh;overflow:auto;width:100%;background:#0d1736;border:1px solid #35569a;border-radius:16px;padding:16px}
+    .rolePanel h3{margin:0 0 6px}.rolePanel pre{white-space:pre-wrap;font-family:Inter,Segoe UI,Arial;font-size:13px;color:#d3e0ff;line-height:1.5}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    @media(max-width:960px){.grid{grid-template-columns:1fr}h1{font-size:34px}.row{grid-template-columns:1fr}.rolesGrid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -34,8 +39,8 @@
     <section class="hero">
       <p class="muted" style="margin:0 0 8px">Virtual Companies as a Service</p>
       <h1>Launch a Virtual Company in Minutes</h1>
-      <p class="sub">Choose team size, business area, and operating features. We create a functional organization with teams, interactions, and deliverables.</p>
-      <p class="muted" style="margin:10px 0 0;font-size:14px">No hiring, no onboarding delays â€” launch a role-mapped virtual company in minutes.</p>
+      <p class="sub">Choose team size, business area, and operating objective. We create a functional organization with teams, interactions, and deliverables.</p>
+      <p class="muted" style="margin:10px 0 0;font-size:14px">No hiring, no onboarding delays - launch a role-mapped virtual company in minutes.</p>
     </section>
 
     <section class="grid">
@@ -44,35 +49,32 @@
         <div class="row">
           <div>
             <label>Number of agents: <span id="agentsOut">6</span></label>
-            <input id="agents" type="range" min="2" max="30" value="6" />
+            <input id="agents" type="range" min="2" max="12" value="6" />
           </div>
           <div>
-            <label>Business area</label>
+            <label>Business area (POC active: 3)</label>
             <select id="business">
-              <option>SaaS / B2B Software</option><option>E-commerce / DTC</option><option>Marketing Agency</option><option>Real Estate Ops</option><option>Professional Services</option>
+              <option>SaaS / B2B Software</option>
+              <option>E-commerce / DTC</option>
+              <option>Marketing Agency</option>
+              <option disabled>Marketplace (coming soon)</option>
+              <option disabled>Healthcare (coming soon)</option>
+              <option disabled>Fintech (coming soon)</option>
+              <option disabled>Logistics (coming soon)</option>
+              <option disabled>Education (coming soon)</option>
             </select>
           </div>
         </div>
         <div>
-          <label>Primary objective</label>
-          <select id="objective"><option>Acquire more customers</option><option>Automate operations</option><option>Scale outbound sales</option><option>Improve retention</option></select>
+          <label>Primary objective (POC active: 3)</label>
+          <select id="objective">
+            <option>Acquire more customers</option>
+            <option>Automate operations</option>
+            <option>Improve retention</option>
+            <option disabled>Expand upsell revenue (coming soon)</option>
+            <option disabled>Lower churn in enterprise segment (coming soon)</option>
+          </select>
         </div>
-
-        <details>
-          <summary>Advanced options (optional)</summary>
-          <div class="row" style="margin-top:10px">
-            <div>
-              <label>Operating region</label>
-              <select id="region"><option>North America</option><option>Europe</option><option>Global / Remote</option><option>LATAM</option><option>MENA</option></select>
-            </div>
-            <div>
-              <label>Feature modules</label>
-              <div class="chips" id="features">
-                <span class="chip active">24/7 Support Desk</span><span class="chip active">Outbound Lead Engine</span><span class="chip">Content Studio</span><span class="chip">CRM Automation</span><span class="chip">Analytics Control Tower</span>
-              </div>
-            </div>
-          </div>
-        </details>
 
         <div style="margin-top:14px">
           <p class="muted" style="margin:0 0 8px">Built for founders who need execution this week, not someday.</p>
@@ -91,29 +93,20 @@
           <div class="muted" id="companyMeta"></div>
           <div class="kpis">
             <div class="kpi"><div class="muted">Agents</div><div class="n" id="kAgents">6</div></div>
-            <div class="kpi"><div class="muted">Capabilities</div><div class="n" id="kCaps">2</div></div>
-            <div class="kpi"><div class="muted">Setup ETA</div><div class="n">7d</div></div>
+            <div class="kpi"><div class="muted">Domain Purity</div><div class="n" id="kPurity">90%</div></div>
+            <div class="kpi"><div class="muted">Confidence</div><div class="n" id="kConfidence">85%</div></div>
           </div>
         </div>
 
         <div class="proof" id="proofCard">
           <h2 style="margin:0 0 6px">Generated organization output</h2>
           <ul id="proofList"></ul>
+          <div id="processList" class="processList"></div>
           <div id="rolesGrid" class="rolesGrid"></div>
         </div>
 
         <div class="finalize" id="finalize">
           <p class="muted" style="margin:0 0 8px"><strong>Your virtual company is ready.</strong> Enter email to receive your full functional organization setup package.</p>
-          <p class="muted" style="margin:0 0 8px">No commitment required. Get your setup plan first.</p>
-
-          <div class="trust" id="trustBullets">
-            <ul>
-              <li>30-day operating plan</li>
-              <li>KPI dashboard template</li>
-              <li>Org chart + agent roles</li>
-            </ul>
-          </div>
-
           <div class="row" style="margin:8px 0 8px">
             <input id="email" type="email" placeholder="name@company.com" />
             <button id="finalizeBtn">Send My Setup Plan</button>
@@ -125,189 +118,222 @@
       </div>
     </section>
 
-    <p class="footer">PoC landing page by Fugazzi â€¢ Visual simulation only (no backend wired yet).</p>
+    <p class="footer">PoC landing page by Fugazzi - data-backed generation active.</p>
+  </div>
+
+  <div id="roleDrawer" class="roleDrawer" aria-hidden="true">
+    <div class="rolePanel">
+      <div class="topbar">
+        <h3 id="roleDrawerTitle">Role profile</h3>
+        <button id="closeDrawerBtn" style="width:auto;padding:8px 12px">Close</button>
+      </div>
+      <pre id="roleDrawerBody"></pre>
+    </div>
   </div>
 
   <script>
     const agents = document.getElementById('agents');
     const agentsOut = document.getElementById('agentsOut');
-    const chips = [...document.querySelectorAll('.chip')];
     const bar = document.getElementById('bar');
     const log = document.getElementById('log');
     const createBtn = document.getElementById('createBtn');
     const finalize = document.getElementById('finalize');
     const companyCard = document.getElementById('companyCard');
     const proofCard = document.getElementById('proofCard');
-    const trustBullets = document.getElementById('trustBullets');
     const proofList = document.getElementById('proofList');
+    const processList = document.getElementById('processList');
     const rolesGrid = document.getElementById('rolesGrid');
     const done = document.getElementById('done');
     const emailInput = document.getElementById('email');
     const honeypotInput = document.getElementById('companyWebsite');
+    const roleDrawer = document.getElementById('roleDrawer');
+    const roleDrawerTitle = document.getElementById('roleDrawerTitle');
+    const roleDrawerBody = document.getElementById('roleDrawerBody');
+
     let generatedAt = 0;
     let dataCache = null;
     let lastGeneration = null;
 
     agents.addEventListener('input',()=> agentsOut.textContent = agents.value);
-    chips.forEach(c=>c.addEventListener('click',()=>c.classList.toggle('active')));
+    document.getElementById('closeDrawerBtn').addEventListener('click',()=> roleDrawer.classList.remove('open'));
+    roleDrawer.addEventListener('click',(e)=>{ if(e.target===roleDrawer) roleDrawer.classList.remove('open'); });
 
     const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
 
-    const industryMap = {
-      'SaaS / B2B Software': ['saas','b2b services'],
-      'E-commerce / DTC': ['ecommerce','retail'],
-      'Marketing Agency': ['agency','b2b services'],
-      'Real Estate Ops': ['real estate','services'],
-      'Professional Services': ['agency','b2b services']
-    };
-
-    const objectiveMap = {
-      'Acquire more customers': ['increase sales','growth'],
-      'Automate operations': ['efficiency','automation'],
-      'Scale outbound sales': ['increase sales','growth'],
-      'Improve retention': ['retention','efficiency']
+    const domainKeyByBusiness = {
+      'SaaS / B2B Software': 'saas_software',
+      'E-commerce / DTC': 'ecommerce',
+      'Marketing Agency': 'agency_services'
     };
 
     async function loadData(){
       if (dataCache) return dataCache;
-      const [roles, archetypes, processes, rules] = await Promise.all([
+      const [roles, archetypes, processes, rules, domainMap, roleBibleMd] = await Promise.all([
         fetch('./data/roles.json').then(r=>r.json()),
         fetch('./data/archetypes.json').then(r=>r.json()),
         fetch('./data/processes.json').then(r=>r.json()),
-        fetch('./data/rules.json').then(r=>r.json())
+        fetch('./data/rules.json').then(r=>r.json()),
+        fetch('./data/domain-role-mapping.v2.json').then(r=>r.json()),
+        fetch('./artifacts/v2-Role-Bible-SaaS.md').then(r=>r.text())
       ]);
-      dataCache = { roles, archetypes, processes, rules };
+      dataCache = { roles, archetypes, processes, rules, domainMap, roleBibleMd };
       return dataCache;
     }
 
-    function scoreRole(role, industries, objectives){
-      const indScore = role.fit?.industries?.some(i => industries.includes(String(i).toLowerCase())) ? 1 : 0;
-      const objScore = role.fit?.objectives?.some(o => objectives.includes(String(o).toLowerCase())) ? 1 : 0;
-      const seniorityBias = role.seniority === 'lead' ? 0.05 : 0;
-      return 0.45 * objScore + 0.35 * indScore + 0.2 * seniorityBias;
+    function parseRoleBible(md){
+      const sections = md.split(/\n##\s+\d+\)\s+/).slice(1);
+      const map = {};
+      for(const sec of sections){
+        const lines = sec.trim().split('\n');
+        const header = lines.shift() || '';
+        const roleName = header.replace(/\(.*\)/,'').trim();
+        map[roleName] = lines.join('\n').trim();
+      }
+      return map;
     }
 
     function pickArchetype(archetypes, business){
       if (business.includes('SaaS')) return archetypes.find(a=>a.id==='arch_b2b_saas') || archetypes[0];
       if (business.includes('E-commerce')) return archetypes.find(a=>a.id==='arch_ecommerce') || archetypes[0];
-      if (business.includes('Agency') || business.includes('Services')) return archetypes.find(a=>a.id==='arch_agency') || archetypes[0];
-      return archetypes[0];
+      return archetypes.find(a=>a.id==='arch_agency') || archetypes[0];
+    }
+
+    function scoreRole(role, objective){
+      const obj = objective.toLowerCase();
+      const objScore = role.fit?.objectives?.some(o => obj.includes(String(o).toLowerCase()) || String(o).toLowerCase().includes('growth') && obj.includes('customer')) ? 1 : 0;
+      const seniorityBias = role.seniority === 'lead' ? 0.05 : 0;
+      return 0.45 * objScore + 0.55 + 0.2 * seniorityBias;
     }
 
     function generateOrg(input, data){
+      const domainKey = domainKeyByBusiness[input.business] || 'saas_software';
+      const policy = data.domainMap.domains[domainKey];
       const maxAgents = (data.rules.find(r=>r.id==='rule_max_agents')?.params?.maxAgents) || 12;
       const cap = Math.min(input.teamSizeTarget, maxAgents);
       const archetype = pickArchetype(data.archetypes, input.business);
-      const industries = (industryMap[input.business] || ['saas']).map(v=>v.toLowerCase());
-      const objectives = (objectiveMap[input.objective] || ['growth']).map(v=>v.toLowerCase());
 
-      const ranked = data.roles
-        .map(r=>({ role:r, score: scoreRole(r, industries, objectives) }))
+      const allowed = new Set(policy.allowedRoleIds || []);
+      const required = new Set(policy.requiredRoleIds || []);
+
+      const domainRoles = data.roles.filter(r => allowed.has(r.id));
+      const ranked = domainRoles
+        .map(r=>({ role:r, score: scoreRole(r, input.objective) }))
         .sort((a,b)=>b.score-a.score);
 
       const selected = [];
       const usedRoleIds = new Set();
+      const errors = [];
 
-      for (const clusterRule of archetype.roleClusters){
-        const clusterCandidates = ranked
-          .filter(x=>x.role.cluster===clusterRule.cluster && !usedRoleIds.has(x.role.id))
-          .slice(0, clusterRule.min);
-        for (const c of clusterCandidates){ selected.push(c.role); usedRoleIds.add(c.role.id); }
+      for (const reqId of required){
+        const reqRole = domainRoles.find(r=>r.id===reqId);
+        if(reqRole){ selected.push(reqRole); usedRoleIds.add(reqRole.id); }
+        else errors.push('ERR_REQUIRED_ROLE_MISSING');
       }
 
-      for (const candidate of ranked){
-        if (selected.length >= cap) break;
-        if (usedRoleIds.has(candidate.role.id)) continue;
-        const kpiKey = String(candidate.role.kpis?.[0] || '').split(' ')[0].toLowerCase();
-        const overlap = selected.some(r => String(r.kpis?.[0] || '').toLowerCase().startsWith(kpiKey) && kpiKey);
-        if (overlap) continue;
-        selected.push(candidate.role);
-        usedRoleIds.add(candidate.role.id);
+      for (const c of ranked){
+        if(selected.length>=cap) break;
+        if(usedRoleIds.has(c.role.id)) continue;
+        const kpiKey = String(c.role.kpis?.[0] || '').split(' ')[0].toLowerCase();
+        const overlap = selected.some(r => String(r.kpis?.[0]||'').split(' ')[0].toLowerCase()===kpiKey && kpiKey);
+        if(overlap) continue;
+        selected.push(c.role); usedRoleIds.add(c.role.id);
       }
 
-      const requiredProcesses = data.processes.filter(p=>archetype.mustHaveProcesses.includes(p.id));
-      for (const process of requiredProcesses){
-        for (const step of process.steps){
-          const hasOwner = selected.some(r => r.name === step.ownerRole);
-          if (!hasOwner){
-            const fallback = data.roles.find(r => r.name === step.ownerRole);
-            if (fallback && selected.length < cap && !usedRoleIds.has(fallback.id)){
-              selected.push(fallback);
-              usedRoleIds.add(fallback.id);
-            }
-          }
+      const requiredProcesses = data.processes.filter(p=>policy.requiredProcessIds.includes(p.id));
+      const ownership = [];
+      for(const process of requiredProcesses){
+        for(const step of process.steps){
+          const owner = selected.find(r=>r.name===step.ownerRole);
+          ownership.push({process:process.name, step:step.label, owner: owner ? owner.name : 'UNOWNED'});
+          if(!owner) errors.push('ERR_PROCESS_STEP_UNOWNED');
         }
       }
 
-      const confidence = Math.max(0.4, Math.min(0.95, 0.75 + (selected.length >= 6 ? 0.1 : 0.05)));
+      const domainPurity = selected.length ? selected.filter(r=>allowed.has(r.id)).length/selected.length : 0;
+      if(domainPurity < (policy.domainPurityThreshold||0.9)) errors.push('ERR_DOMAIN_PURITY_LOW');
 
-      return {
-        archetype,
-        selectedRoles: selected.slice(0, cap),
-        processes: requiredProcesses,
-        confidence
-      };
+      let confidence = 0.85;
+      if(errors.includes('ERR_PROCESS_STEP_UNOWNED')) confidence -= 0.1;
+      if(errors.includes('ERR_REQUIRED_ROLE_MISSING')) confidence -= 0.1;
+      if(errors.includes('ERR_DOMAIN_PURITY_LOW')) confidence -= 0.1;
+      confidence = Math.max(0.4, Math.min(0.95, confidence));
+
+      return { domainKey, archetype, selectedRoles:selected, processes:requiredProcesses, ownership, domainPurity, confidence, errors:[...new Set(errors)] };
+    }
+
+    function openRoleProfile(role, roleBible){
+      roleDrawerTitle.textContent = role.name;
+      roleDrawerBody.textContent = roleBible[role.name] || `Purpose: ${role.mission}\n\nKPIs: ${(role.kpis||[]).join(', ')}\n\nTooling: ${(role.tools||[]).join(', ')}`;
+      roleDrawer.classList.add('open');
     }
 
     async function createCompany(){
       createBtn.disabled = true;
       createBtn.textContent = 'Generating...';
       generatedAt = Date.now();
-      done.textContent=''; finalize.style.display='none'; companyCard.style.display='none'; proofCard.style.display='none'; trustBullets.style.display='none';
+      done.textContent=''; finalize.style.display='none'; companyCard.style.display='none'; proofCard.style.display='none';
       bar.style.width='0%'; log.textContent='Initializing build pipeline...';
 
       const business = document.getElementById('business').value;
       const objective = document.getElementById('objective').value;
-      const region = document.getElementById('region').value;
       const nAgents = Number(agents.value);
-      const selectedFeatures = chips.filter(c=>c.classList.contains('active')).map(c=>c.textContent.trim());
 
       const lines = [
-        `Analyzing market template: ${business}`,
-        `Allocating ${nAgents} specialized agents...`,
-        `Activating objective mode: ${objective}`,
-        `Configuring region stack: ${region}`,
-        `Enabling capabilities: ${selectedFeatures.join(', ') || 'Core stack only'}`,
-        `Loading role/process datasets...`,
-        `Compiling launch package...`,
+        `Analyzing domain template: ${business}`,
+        `Allocating ${nAgents} specialist agents...`,
+        `Applying objective model: ${objective}`,
+        `Loading role bible + domain constraints...`,
+        `Validating process ownership...`,
+        `Compiling organization package...`,
         `Virtual company created successfully.`
       ];
 
       for(let i=0;i<lines.length;i++){
-        await sleep(420);
+        await sleep(380);
         bar.style.width = `${Math.round(((i+1)/lines.length)*100)}%`;
         log.textContent += `\n> ${lines[i]}`;
       }
 
       try {
         const data = await loadData();
+        const roleBible = parseRoleBible(data.roleBibleMd);
         const generation = generateOrg({ business, objective, teamSizeTarget: nAgents }, data);
         lastGeneration = generation;
 
         const name = `${business.split('/')[0].trim()} Velocity Co.`;
         document.getElementById('companyName').textContent = name;
-        document.getElementById('companyMeta').textContent = `${business} • ${objective} • ${region} • ${generation.archetype.name}`;
+        document.getElementById('companyMeta').textContent = `${business} • ${objective} • ${generation.archetype.name}`;
         document.getElementById('kAgents').textContent = generation.selectedRoles.length;
-        document.getElementById('kCaps').textContent = selectedFeatures.length || 1;
+        document.getElementById('kPurity').textContent = `${Math.round(generation.domainPurity*100)}%`;
+        document.getElementById('kConfidence').textContent = `${Math.round(generation.confidence*100)}%`;
 
         proofList.innerHTML = `
           <li><strong>Archetype:</strong> ${generation.archetype.name}</li>
           <li><strong>Core processes:</strong> ${generation.processes.map(p=>p.name).join(' · ')}</li>
-          <li><strong>Confidence:</strong> ${(generation.confidence*100).toFixed(0)}%</li>`;
+          <li><strong>Validation errors:</strong> ${generation.errors.length ? generation.errors.join(', ') : 'None'}</li>`;
 
-        rolesGrid.innerHTML = generation.selectedRoles.slice(0,8).map(r => {
-          const soul = `${r.soulTemplate?.identity || 'Operator'} — ${r.soulTemplate?.style || 'execution-focused'}`;
-          return `<div class="roleCard"><div class="title">${r.name}</div><div class="soul">Soul: ${soul}</div></div>`;
+        processList.innerHTML = generation.ownership.slice(0,12).map(o => `<div class="processItem"><strong>${o.process}</strong><br>${o.step}<br>Owner: <strong>${o.owner}</strong></div>`).join('');
+
+        rolesGrid.innerHTML = generation.selectedRoles.slice(0,10).map(r => {
+          const soul = `${r.soulTemplate?.identity || 'Operator'} - ${r.soulTemplate?.style || 'execution-focused'}`;
+          return `<div class="roleCard" data-role="${r.name}"><div class="title">${r.name}</div><div class="soul">Soul: ${soul}</div><div class="soul">Model: ${roleBible[r.name]?.match(/Recommended LLM\*\*: `([^`]+)`/)?.[1] || 'openrouter/openai/o4-mini'}</div></div>`;
         }).join('');
+
+        rolesGrid.querySelectorAll('.roleCard').forEach(card => {
+          card.addEventListener('click', ()=>{
+            const role = generation.selectedRoles.find(r=>r.name===card.dataset.role);
+            if(role) openRoleProfile(role, roleBible);
+          });
+        });
       } catch (err) {
         proofList.innerHTML = `<li><strong>Generation data error:</strong> dataset could not be loaded.</li>`;
         rolesGrid.innerHTML = '';
+        processList.innerHTML = '';
       }
 
       companyCard.style.display='block';
       proofCard.style.display='block';
       finalize.style.display='block';
-      trustBullets.style.display='block';
       createBtn.disabled = false;
       createBtn.textContent = 'Regenerate Company';
     }
@@ -321,13 +347,11 @@
         done.className='muted';
         return;
       }
-
       if (honeypotInput.value.trim() !== '') {
         done.textContent = 'Submission blocked.';
         done.className = 'muted';
         return;
       }
-
       if (!generatedAt || (Date.now() - generatedAt) < 3000) {
         done.textContent = 'Please review your setup for a moment, then submit again.';
         done.className = 'muted';
@@ -339,14 +363,14 @@
         agents: Number(agents.value),
         business: document.getElementById('business').value,
         objective: document.getElementById('objective').value,
-        region: document.getElementById('region').value,
-        features: chips.filter(c=>c.classList.contains('active')).map(c=>c.textContent.trim()),
         generatedCompany: document.getElementById('companyName').textContent,
         archetype: lastGeneration?.archetype?.name || '',
         generatedRoles: (lastGeneration?.selectedRoles || []).map(r=>r.name).join(', '),
         processes: (lastGeneration?.processes || []).map(p=>p.name).join(', '),
+        confidence: lastGeneration?.confidence || 0,
+        error_codes: (lastGeneration?.errors || []).join(', '),
         submittedAt: new Date().toISOString(),
-        source: 'idea-one-landing'
+        source: 'idea-one-landing-v2'
       };
 
       const btn = document.getElementById('finalizeBtn');
@@ -356,30 +380,17 @@
 
       try {
         const res = await fetch('https://formsubmit.co/ajax/dantesofomor@gmail.com', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
           body: JSON.stringify({
-            _subject: 'New Virtual Company Lead',
-            _template: 'table',
-            _captcha: 'true',
-            _honey: honeypotInput.value,
-            email: payload.email,
-            agents: payload.agents,
-            business_area: payload.business,
-            primary_objective: payload.objective,
-            operating_region: payload.region,
-            features: payload.features.join(', '),
-            generated_company: payload.generatedCompany,
-            archetype: payload.archetype,
-            generated_roles: payload.generatedRoles,
-            core_processes: payload.processes,
-            submitted_at: payload.submittedAt,
-            source: payload.source
+            _subject: 'New Virtual Company Lead (v2)', _template: 'table', _captcha: 'true', _honey: honeypotInput.value,
+            email: payload.email, agents: payload.agents, business_area: payload.business, primary_objective: payload.objective,
+            generated_company: payload.generatedCompany, archetype: payload.archetype, generated_roles: payload.generatedRoles,
+            core_processes: payload.processes, confidence: payload.confidence, error_codes: payload.error_codes,
+            submitted_at: payload.submittedAt, source: payload.source
           })
         });
-
         if (!res.ok) throw new Error('submit_failed');
-        done.innerHTML = `<span class='ok'>Done — your Virtual Company setup plan is on the way.</span>`;
+        done.innerHTML = `<span class='ok'>Done - your Virtual Company setup plan is on the way.</span>`;
         emailInput.value = '';
       } catch (e) {
         done.textContent = 'Could not submit right now. Please try again in a moment.';
@@ -391,4 +402,3 @@
   </script>
 </body>
 </html>
-
