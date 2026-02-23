@@ -113,6 +113,7 @@
             <input id="email" type="email" placeholder="name@company.com" />
             <button id="finalizeBtn">Send My Setup Plan</button>
           </div>
+          <input id="companyWebsite" type="text" autocomplete="off" tabindex="-1" style="position:absolute;left:-9999px;opacity:0" aria-hidden="true" />
           <p class="muted" style="margin:4px 0 0">We only use your email to send your company setup and onboarding steps.</p>
           <div id="done" class="muted"></div>
         </div>
@@ -135,6 +136,9 @@
     const trustBullets = document.getElementById('trustBullets');
     const proofList = document.getElementById('proofList');
     const done = document.getElementById('done');
+    const emailInput = document.getElementById('email');
+    const honeypotInput = document.getElementById('companyWebsite');
+    let generatedAt = 0;
 
     agents.addEventListener('input',()=> agentsOut.textContent = agents.value);
     chips.forEach(c=>c.addEventListener('click',()=>c.classList.toggle('active')));
@@ -144,6 +148,7 @@
     async function createCompany(){
       createBtn.disabled = true;
       createBtn.textContent = 'Generating...';
+      generatedAt = Date.now();
       done.textContent=''; finalize.style.display='none'; companyCard.style.display='none'; proofCard.style.display='none'; trustBullets.style.display='none';
       bar.style.width='0%'; log.textContent='Initializing build pipeline...';
 
@@ -191,14 +196,73 @@
 
     createBtn.addEventListener('click', createCompany);
 
-    document.getElementById('finalizeBtn').addEventListener('click',()=>{
-      const email = document.getElementById('email').value.trim();
+    document.getElementById('finalizeBtn').addEventListener('click', async ()=>{
+      const email = emailInput.value.trim();
       if(!/^\S+@\S+\.\S+$/.test(email)){
         done.textContent='Please enter a valid email.';
         done.className='muted';
         return;
       }
-      done.innerHTML = `<span class='ok'>Done â€” your Virtual Company setup plan is on the way.</span>`;
+
+      if (honeypotInput.value.trim() !== '') {
+        done.textContent = 'Submission blocked.';
+        done.className = 'muted';
+        return;
+      }
+
+      if (!generatedAt || (Date.now() - generatedAt) < 3000) {
+        done.textContent = 'Please review your setup for a moment, then submit again.';
+        done.className = 'muted';
+        return;
+      }
+
+      const payload = {
+        email,
+        agents: Number(agents.value),
+        business: document.getElementById('business').value,
+        objective: document.getElementById('objective').value,
+        region: document.getElementById('region').value,
+        features: chips.filter(c=>c.classList.contains('active')).map(c=>c.textContent.trim()),
+        generatedCompany: document.getElementById('companyName').textContent,
+        submittedAt: new Date().toISOString(),
+        source: 'idea-one-landing'
+      };
+
+      const btn = document.getElementById('finalizeBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      done.textContent = '';
+
+      try {
+        const res = await fetch('https://formsubmit.co/ajax/dantesofomor@gmail.com', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({
+            _subject: 'New Virtual Company Lead',
+            _template: 'table',
+            _captcha: 'true',
+            _honey: honeypotInput.value,
+            email: payload.email,
+            agents: payload.agents,
+            business_area: payload.business,
+            primary_objective: payload.objective,
+            operating_region: payload.region,
+            features: payload.features.join(', '),
+            generated_company: payload.generatedCompany,
+            submitted_at: payload.submittedAt,
+            source: payload.source
+          })
+        });
+
+        if (!res.ok) throw new Error('submit_failed');
+        done.innerHTML = `<span class='ok'>Done — your Virtual Company setup plan is on the way.</span>`;
+        emailInput.value = '';
+      } catch (e) {
+        done.textContent = 'Could not submit right now. Please try again in a moment.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Send My Setup Plan';
+      }
     });
   </script>
 </body>
