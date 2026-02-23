@@ -1,0 +1,53 @@
+[
+  {
+    "id": "proc_lead_to_close",
+    "name": "Lead to Close",
+    "fits": ["B2B SaaS", "Service Agency"],
+    "steps": [
+      {"order": 1, "label": "Capture & enrich lead", "ownerRole": "Growth Marketer", "output": "qualified lead record", "slaHint": "<24h"},
+      {"order": 2, "label": "Qualify opportunity", "ownerRole": "Revenue Operator", "output": "SQL + qualification notes", "slaHint": "<48h"},
+      {"order": 3, "label": "Run discovery and propose", "ownerRole": "Sales Closer", "output": "proposal + next steps", "slaHint": "<72h"},
+      {"order": 4, "label": "Contract & handoff", "ownerRole": "Sales Closer", "output": "closed-won package", "slaHint": "same day"}
+    ]
+  },
+  {
+    "id": "proc_onboarding",
+    "name": "Customer Onboarding",
+    "fits": ["B2B SaaS"],
+    "steps": [
+      {"order": 1, "label": "Kickoff", "ownerRole": "Onboarding Manager", "output": "implementation plan", "slaHint": "<24h after close"},
+      {"order": 2, "label": "Setup & training", "ownerRole": "Onboarding Manager", "output": "activated workspace", "slaHint": "week 1"},
+      {"order": 3, "label": "First value checkpoint", "ownerRole": "Onboarding Manager", "output": "value proof", "slaHint": "week 2"}
+    ]
+  },
+  {
+    "id": "proc_support_resolution",
+    "name": "Support Resolution",
+    "fits": ["B2B SaaS", "E-commerce Brand"],
+    "steps": [
+      {"order": 1, "label": "Triage", "ownerRole": "Support Lead", "output": "priority + owner assignment", "slaHint": "<1h"},
+      {"order": 2, "label": "Resolve", "ownerRole": "Support Lead", "output": "issue fixed / workaround", "slaHint": "<24h standard"},
+      {"order": 3, "label": "Close with feedback", "ownerRole": "Support Lead", "output": "CSAT + tags", "slaHint": "same day"}
+    ]
+  },
+  {
+    "id": "proc_demand_to_checkout",
+    "name": "Demand to Checkout",
+    "fits": ["E-commerce Brand"],
+    "steps": [
+      {"order": 1, "label": "Campaign launch", "ownerRole": "Growth Marketer", "output": "traffic to PDP", "slaHint": "daily"},
+      {"order": 2, "label": "Offer optimization", "ownerRole": "Data Analyst", "output": "A/B recommendation", "slaHint": "weekly"},
+      {"order": 3, "label": "Checkout conversion improvements", "ownerRole": "Ops Automation Specialist", "output": "friction reduction", "slaHint": "bi-weekly"}
+    ]
+  },
+  {
+    "id": "proc_content_growth",
+    "name": "Content Growth Loop",
+    "fits": ["B2B SaaS", "E-commerce Brand", "Service Agency"],
+    "steps": [
+      {"order": 1, "label": "Topic selection", "ownerRole": "Content Operator", "output": "content brief", "slaHint": "weekly"},
+      {"order": 2, "label": "Draft and publish", "ownerRole": "Content Operator", "output": "published asset", "slaHint": "2-3x/week"},
+      {"order": 3, "label": "Performance review", "ownerRole": "Data Analyst", "output": "improvement actions", "slaHint": "weekly"}
+    ]
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {"id":"rule_max_agents","type":"constraint","description":"Max 12 agents in POC output","params":{"maxAgents":12}},
+  {"id":"rule_one_dri","type":"validation","description":"Each objective must have one explicit DRI role"},
+  {"id":"rule_no_overlap","type":"validation","description":"No two roles may own the same primary KPI category"},
+  {"id":"rule_kpi_required","type":"validation","description":"Every role must have at least one measurable KPI"},
+  {"id":"rule_handoff_required","type":"validation","description":"Every role must define at least one handoff or dependency"},
+  {"id":"rule_industry_fit","type":"scoring","description":"Boost roles matching selected industry","weight":0.35},
+  {"id":"rule_objective_fit","type":"scoring","description":"Boost roles matching selected objective","weight":0.45},
+  {"id":"rule_budget_fit","type":"selection","description":"Lean mode prefers assistant/specialist roles over broad leadership layering","weight":0.2},
+  {"id":"rule_process_coverage","type":"validation","description":"Generated org must cover all steps of selected core processes"},
+  {"id":"rule_soul_summary_required","type":"validation","description":"Every role includes a short Soul summary"}
+]

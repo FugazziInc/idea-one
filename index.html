@@ -20,6 +20,10 @@
     .company{display:none;border:1px solid #2f4d86;background:#0f2047;border-radius:14px;padding:14px}.company h3{margin:0 0 8px}
     .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.kpi{background:#0b1738;border:1px solid #324c86;padding:10px;border-radius:10px}.kpi .n{font-size:20px;font-weight:800}
     .proof{display:none;background:#0b1738;border:1px solid #35569a;border-radius:12px;padding:12px}.proof ul{margin:8px 0 0 18px;padding:0}
+    .rolesGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .roleCard{background:#0d1d44;border:1px solid #35569a;border-radius:10px;padding:8px}
+    .roleCard .title{font-weight:700;font-size:13px}
+    .roleCard .soul{font-size:12px;color:#a9bbe9}
     .trust{display:none;background:#0c1737;border:1px solid #345393;border-radius:12px;padding:10px}.trust ul{margin:6px 0 0 18px;padding:0}
     .finalize{display:none;margin-top:8px}.ok{color:var(--ok);font-weight:700}.footer{margin:22px 0 8px;color:#8ca0d1;font-size:12px}
     @media(max-width:960px){.grid{grid-template-columns:1fr}h1{font-size:34px}.row{grid-template-columns:1fr}}
@@ -93,8 +97,9 @@
         </div>
 
         <div class="proof" id="proofCard">
-          <h2 style="margin:0 0 6px">Sample generated output</h2>
+          <h2 style="margin:0 0 6px">Generated organization output</h2>
           <ul id="proofList"></ul>
+          <div id="rolesGrid" class="rolesGrid"></div>
         </div>
 
         <div class="finalize" id="finalize">
@@ -135,15 +140,114 @@
     const proofCard = document.getElementById('proofCard');
     const trustBullets = document.getElementById('trustBullets');
     const proofList = document.getElementById('proofList');
+    const rolesGrid = document.getElementById('rolesGrid');
     const done = document.getElementById('done');
     const emailInput = document.getElementById('email');
     const honeypotInput = document.getElementById('companyWebsite');
     let generatedAt = 0;
+    let dataCache = null;
+    let lastGeneration = null;
 
     agents.addEventListener('input',()=> agentsOut.textContent = agents.value);
     chips.forEach(c=>c.addEventListener('click',()=>c.classList.toggle('active')));
 
     const sleep = (ms)=>new Promise(r=>setTimeout(r,ms));
+
+    const industryMap = {
+      'SaaS / B2B Software': ['saas','b2b services'],
+      'E-commerce / DTC': ['ecommerce','retail'],
+      'Marketing Agency': ['agency','b2b services'],
+      'Real Estate Ops': ['real estate','services'],
+      'Professional Services': ['agency','b2b services']
+    };
+
+    const objectiveMap = {
+      'Acquire more customers': ['increase sales','growth'],
+      'Automate operations': ['efficiency','automation'],
+      'Scale outbound sales': ['increase sales','growth'],
+      'Improve retention': ['retention','efficiency']
+    };
+
+    async function loadData(){
+      if (dataCache) return dataCache;
+      const [roles, archetypes, processes, rules] = await Promise.all([
+        fetch('./data/roles.json').then(r=>r.json()),
+        fetch('./data/archetypes.json').then(r=>r.json()),
+        fetch('./data/processes.json').then(r=>r.json()),
+        fetch('./data/rules.json').then(r=>r.json())
+      ]);
+      dataCache = { roles, archetypes, processes, rules };
+      return dataCache;
+    }
+
+    function scoreRole(role, industries, objectives){
+      const indScore = role.fit?.industries?.some(i => industries.includes(String(i).toLowerCase())) ? 1 : 0;
+      const objScore = role.fit?.objectives?.some(o => objectives.includes(String(o).toLowerCase())) ? 1 : 0;
+      const seniorityBias = role.seniority === 'lead' ? 0.05 : 0;
+      return 0.45 * objScore + 0.35 * indScore + 0.2 * seniorityBias;
+    }
+
+    function pickArchetype(archetypes, business){
+      if (business.includes('SaaS')) return archetypes.find(a=>a.id==='arch_b2b_saas') || archetypes[0];
+      if (business.includes('E-commerce')) return archetypes.find(a=>a.id==='arch_ecommerce') || archetypes[0];
+      if (business.includes('Agency') || business.includes('Services')) return archetypes.find(a=>a.id==='arch_agency') || archetypes[0];
+      return archetypes[0];
+    }
+
+    function generateOrg(input, data){
+      const maxAgents = (data.rules.find(r=>r.id==='rule_max_agents')?.params?.maxAgents) || 12;
+      const cap = Math.min(input.teamSizeTarget, maxAgents);
+      const archetype = pickArchetype(data.archetypes, input.business);
+      const industries = (industryMap[input.business] || ['saas']).map(v=>v.toLowerCase());
+      const objectives = (objectiveMap[input.objective] || ['growth']).map(v=>v.toLowerCase());
+
+      const ranked = data.roles
+        .map(r=>({ role:r, score: scoreRole(r, industries, objectives) }))
+        .sort((a,b)=>b.score-a.score);
+
+      const selected = [];
+      const usedRoleIds = new Set();
+
+      for (const clusterRule of archetype.roleClusters){
+        const clusterCandidates = ranked
+          .filter(x=>x.role.cluster===clusterRule.cluster && !usedRoleIds.has(x.role.id))
+          .slice(0, clusterRule.min);
+        for (const c of clusterCandidates){ selected.push(c.role); usedRoleIds.add(c.role.id); }
+      }
+
+      for (const candidate of ranked){
+        if (selected.length >= cap) break;
+        if (usedRoleIds.has(candidate.role.id)) continue;
+        const kpiKey = String(candidate.role.kpis?.[0] || '').split(' ')[0].toLowerCase();
+        const overlap = selected.some(r => String(r.kpis?.[0] || '').toLowerCase().startsWith(kpiKey) && kpiKey);
+        if (overlap) continue;
+        selected.push(candidate.role);
+        usedRoleIds.add(candidate.role.id);
+      }
+
+      const requiredProcesses = data.processes.filter(p=>archetype.mustHaveProcesses.includes(p.id));
+      for (const process of requiredProcesses){
+        for (const step of process.steps){
+          const hasOwner = selected.some(r => r.name === step.ownerRole);
+          if (!hasOwner){
+            const fallback = data.roles.find(r => r.name === step.ownerRole);
+            if (fallback && selected.length < cap && !usedRoleIds.has(fallback.id)){
+              selected.push(fallback);
+              usedRoleIds.add(fallback.id);
+            }
+          }
+        }
+      }
+
+      const confidence = Math.max(0.4, Math.min(0.95, 0.75 + (selected.length >= 6 ? 0.1 : 0.05)));
+
+      return {
+        archetype,
+        selectedRoles: selected.slice(0, cap),
+        processes: requiredProcesses,
+        confidence
+      };
+    }
 
     async function createCompany(){
       createBtn.disabled = true;
@@ -156,35 +260,49 @@
       const objective = document.getElementById('objective').value;
       const region = document.getElementById('region').value;
       const nAgents = Number(agents.value);
-      const selected = chips.filter(c=>c.classList.contains('active')).map(c=>c.textContent.trim());
+      const selectedFeatures = chips.filter(c=>c.classList.contains('active')).map(c=>c.textContent.trim());
 
       const lines = [
         `Analyzing market template: ${business}`,
         `Allocating ${nAgents} specialized agents...`,
         `Activating objective mode: ${objective}`,
         `Configuring region stack: ${region}`,
-        `Enabling capabilities: ${selected.join(', ') || 'Core stack only'}`,
-        `Generating operating playbooks...`,
-        `Compiling launch package.....`,
+        `Enabling capabilities: ${selectedFeatures.join(', ') || 'Core stack only'}`,
+        `Loading role/process datasets...`,
+        `Compiling launch package...`,
         `Virtual company created successfully.`
       ];
 
       for(let i=0;i<lines.length;i++){
-        await sleep(480);
+        await sleep(420);
         bar.style.width = `${Math.round(((i+1)/lines.length)*100)}%`;
         log.textContent += `\n> ${lines[i]}`;
       }
 
-      const name = `${business.split('/')[0].trim()} Velocity Co.`;
-      document.getElementById('companyName').textContent = name;
-      document.getElementById('companyMeta').textContent = `${business} â€¢ ${objective} â€¢ ${region}`;
-      document.getElementById('kAgents').textContent = nAgents;
-      document.getElementById('kCaps').textContent = selected.length || 1;
+      try {
+        const data = await loadData();
+        const generation = generateOrg({ business, objective, teamSizeTarget: nAgents }, data);
+        lastGeneration = generation;
 
-      proofList.innerHTML = `
-        <li><strong>Roles:</strong> CEO Copilot, Sales Agent, Ops Agent, Support Agent${nAgents>8?', Growth Agent':''}</li>
-        <li><strong>Goal:</strong> ${objective} for ${business}</li>
-        <li><strong>Week 1 actions:</strong> ICP mapping, outreach sprint, KPI baseline, daily standup workflow</li>`;
+        const name = `${business.split('/')[0].trim()} Velocity Co.`;
+        document.getElementById('companyName').textContent = name;
+        document.getElementById('companyMeta').textContent = `${business} • ${objective} • ${region} • ${generation.archetype.name}`;
+        document.getElementById('kAgents').textContent = generation.selectedRoles.length;
+        document.getElementById('kCaps').textContent = selectedFeatures.length || 1;
+
+        proofList.innerHTML = `
+          <li><strong>Archetype:</strong> ${generation.archetype.name}</li>
+          <li><strong>Core processes:</strong> ${generation.processes.map(p=>p.name).join(' · ')}</li>
+          <li><strong>Confidence:</strong> ${(generation.confidence*100).toFixed(0)}%</li>`;
+
+        rolesGrid.innerHTML = generation.selectedRoles.slice(0,8).map(r => {
+          const soul = `${r.soulTemplate?.identity || 'Operator'} — ${r.soulTemplate?.style || 'execution-focused'}`;
+          return `<div class="roleCard"><div class="title">${r.name}</div><div class="soul">Soul: ${soul}</div></div>`;
+        }).join('');
+      } catch (err) {
+        proofList.innerHTML = `<li><strong>Generation data error:</strong> dataset could not be loaded.</li>`;
+        rolesGrid.innerHTML = '';
+      }
 
       companyCard.style.display='block';
       proofCard.style.display='block';
@@ -224,6 +342,9 @@
         region: document.getElementById('region').value,
         features: chips.filter(c=>c.classList.contains('active')).map(c=>c.textContent.trim()),
         generatedCompany: document.getElementById('companyName').textContent,
+        archetype: lastGeneration?.archetype?.name || '',
+        generatedRoles: (lastGeneration?.selectedRoles || []).map(r=>r.name).join(', '),
+        processes: (lastGeneration?.processes || []).map(p=>p.name).join(', '),
         submittedAt: new Date().toISOString(),
         source: 'idea-one-landing'
       };
@@ -249,6 +370,9 @@
             operating_region: payload.region,
             features: payload.features.join(', '),
             generated_company: payload.generatedCompany,
+            archetype: payload.archetype,
+            generated_roles: payload.generatedRoles,
+            core_processes: payload.processes,
             submitted_at: payload.submittedAt,
             source: payload.source
           })

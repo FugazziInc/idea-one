@@ -1,0 +1,44 @@
+[
+  {
+    "id": "arch_b2b_saas",
+    "name": "B2B SaaS",
+    "defaultObjectives": ["increase qualified pipeline", "improve activation", "reduce churn"],
+    "mustHaveProcesses": ["proc_lead_to_close", "proc_onboarding", "proc_support_resolution"],
+    "roleClusters": [
+      {"cluster": "leadership", "min": 1, "max": 1},
+      {"cluster": "sales", "min": 2, "max": 3},
+      {"cluster": "marketing", "min": 1, "max": 2},
+      {"cluster": "support", "min": 1, "max": 2},
+      {"cluster": "ops", "min": 1, "max": 2},
+      {"cluster": "data", "min": 1, "max": 1}
+    ]
+  },
+  {
+    "id": "arch_ecommerce",
+    "name": "E-commerce Brand",
+    "defaultObjectives": ["increase conversion", "raise AOV", "improve repeat purchase"],
+    "mustHaveProcesses": ["proc_demand_to_checkout", "proc_order_support", "proc_content_growth"],
+    "roleClusters": [
+      {"cluster": "leadership", "min": 1, "max": 1},
+      {"cluster": "marketing", "min": 2, "max": 3},
+      {"cluster": "ops", "min": 1, "max": 2},
+      {"cluster": "support", "min": 1, "max": 2},
+      {"cluster": "finance", "min": 1, "max": 1},
+      {"cluster": "data", "min": 1, "max": 1}
+    ]
+  },
+  {
+    "id": "arch_agency",
+    "name": "Service Agency",
+    "defaultObjectives": ["close higher-value deals", "improve delivery margin", "increase client retention"],
+    "mustHaveProcesses": ["proc_lead_to_close", "proc_client_delivery", "proc_renewal"],
+    "roleClusters": [
+      {"cluster": "leadership", "min": 1, "max": 1},
+      {"cluster": "sales", "min": 1, "max": 2},
+      {"cluster": "ops", "min": 2, "max": 3},
+      {"cluster": "support", "min": 1, "max": 1},
+      {"cluster": "finance", "min": 1, "max": 1},
+      {"cluster": "marketing", "min": 1, "max": 1}
+    ]
+  }
+]
