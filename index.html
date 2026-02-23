@@ -224,6 +224,9 @@
       const usedRoleIds = new Set();
       const errors = [];
 
+      const roleById = new Map(data.roles.map(r => [r.id, r]));
+      const roleIdByName = new Map(data.roles.map(r => [String(r.name || '').trim().toLowerCase(), r.id]));
+
       for (const reqId of required){
         const reqRole = domainRoles.find(r=>r.id===reqId);
         if(reqRole){ selected.push(reqRole); usedRoleIds.add(reqRole.id); }
@@ -241,10 +244,54 @@
 
       const requiredProcesses = data.processes.filter(p=>policy.requiredProcessIds.includes(p.id));
       const ownership = [];
+
+      const resolveOwnerId = (step) => {
+        if (step.ownerRoleId && roleById.has(step.ownerRoleId)) return step.ownerRoleId;
+        const alias = String(step.ownerRole || '').trim().toLowerCase();
+        return roleIdByName.get(alias) || null;
+      };
+
+      const requiredOwnerRoleIds = new Set();
+      for (const process of requiredProcesses){
+        for (const step of process.steps){
+          const ownerRoleId = resolveOwnerId(step);
+          if (ownerRoleId) requiredOwnerRoleIds.add(ownerRoleId);
+        }
+      }
+
+      const rankedById = new Map(ranked.map(x => [x.role.id, x.score]));
+      for (const ownerRoleId of requiredOwnerRoleIds){
+        if (usedRoleIds.has(ownerRoleId)) continue;
+        const ownerRole = roleById.get(ownerRoleId);
+        if (!ownerRole || !allowed.has(ownerRoleId)) {
+          errors.push('ERR_REQUIRED_ROLE_MISSING');
+          continue;
+        }
+        if (selected.length < cap) {
+          selected.push(ownerRole);
+          usedRoleIds.add(ownerRoleId);
+          continue;
+        }
+        const replaceIdx = selected.findIndex(r => !required.has(r.id) && !requiredOwnerRoleIds.has(r.id));
+        if (replaceIdx >= 0){
+          usedRoleIds.delete(selected[replaceIdx].id);
+          selected[replaceIdx] = ownerRole;
+          usedRoleIds.add(ownerRoleId);
+        } else {
+          errors.push('ERR_REQUIRED_ROLE_MISSING');
+        }
+      }
+
       for(const process of requiredProcesses){
         for(const step of process.steps){
-          const owner = selected.find(r=>r.name===step.ownerRole);
-          ownership.push({process:process.name, step:step.label, owner: owner ? owner.name : 'UNOWNED'});
+          const ownerRoleId = resolveOwnerId(step);
+          const owner = ownerRoleId ? selected.find(r=>r.id===ownerRoleId) : null;
+          ownership.push({
+            process: process.name,
+            step: step.label,
+            owner: owner ? owner.name : 'UNOWNED',
+            ownerRoleId: ownerRoleId || 'UNOWNED'
+          });
           if(!owner) errors.push('ERR_PROCESS_STEP_UNOWNED');
         }
       }
@@ -252,13 +299,17 @@
       const domainPurity = selected.length ? selected.filter(r=>allowed.has(r.id)).length/selected.length : 0;
       if(domainPurity < (policy.domainPurityThreshold||0.9)) errors.push('ERR_DOMAIN_PURITY_LOW');
 
+      const uniqueErrors = [...new Set(errors)];
+      const blockingErrors = ['ERR_PROCESS_STEP_UNOWNED','ERR_REQUIRED_ROLE_MISSING','ERR_DOMAIN_PURITY_LOW'];
+      const blocked = uniqueErrors.some(e => blockingErrors.includes(e));
+
       let confidence = 0.85;
-      if(errors.includes('ERR_PROCESS_STEP_UNOWNED')) confidence -= 0.1;
-      if(errors.includes('ERR_REQUIRED_ROLE_MISSING')) confidence -= 0.1;
-      if(errors.includes('ERR_DOMAIN_PURITY_LOW')) confidence -= 0.1;
+      if(uniqueErrors.includes('ERR_PROCESS_STEP_UNOWNED')) confidence -= 0.1;
+      if(uniqueErrors.includes('ERR_REQUIRED_ROLE_MISSING')) confidence -= 0.1;
+      if(uniqueErrors.includes('ERR_DOMAIN_PURITY_LOW')) confidence -= 0.1;
       confidence = Math.max(0.4, Math.min(0.95, confidence));
 
-      return { domainKey, archetype, selectedRoles:selected, processes:requiredProcesses, ownership, domainPurity, confidence, errors:[...new Set(errors)] };
+      return { domainKey, archetype, selectedRoles:selected, processes:requiredProcesses, ownership, domainPurity, confidence, errors:uniqueErrors, blocked };
     }
 
     function openRoleProfile(role, roleBible){
@@ -300,31 +351,46 @@
         const generation = generateOrg({ business, objective, teamSizeTarget: nAgents }, data);
         lastGeneration = generation;
 
-        const name = `${business.split('/')[0].trim()} Velocity Co.`;
-        document.getElementById('companyName').textContent = name;
-        document.getElementById('companyMeta').textContent = `${business} • ${objective} • ${generation.archetype.name}`;
-        document.getElementById('kAgents').textContent = generation.selectedRoles.length;
-        document.getElementById('kPurity').textContent = `${Math.round(generation.domainPurity*100)}%`;
-        document.getElementById('kConfidence').textContent = `${Math.round(generation.confidence*100)}%`;
+        if (generation.blocked) {
+          document.getElementById('companyName').textContent = 'Generation blocked';
+          document.getElementById('companyMeta').textContent = `${business} • ${objective}`;
+          document.getElementById('kAgents').textContent = generation.selectedRoles.length;
+          document.getElementById('kPurity').textContent = `${Math.round(generation.domainPurity*100)}%`;
+          document.getElementById('kConfidence').textContent = `${Math.round(generation.confidence*100)}%`;
+          proofList.innerHTML = `
+            <li><strong>Status:</strong> blocked for data integrity</li>
+            <li><strong>Errors:</strong> ${generation.errors.join(', ')}</li>
+            <li><strong>Action:</strong> adjust input and regenerate</li>`;
+          processList.innerHTML = '';
+          rolesGrid.innerHTML = '';
+          done.textContent = 'Generation blocked due to unresolved role/process ownership.';
+        } else {
+          const name = `${business.split('/')[0].trim()} Velocity Co.`;
+          document.getElementById('companyName').textContent = name;
+          document.getElementById('companyMeta').textContent = `${business} • ${objective} • ${generation.archetype.name}`;
+          document.getElementById('kAgents').textContent = generation.selectedRoles.length;
+          document.getElementById('kPurity').textContent = `${Math.round(generation.domainPurity*100)}%`;
+          document.getElementById('kConfidence').textContent = `${Math.round(generation.confidence*100)}%`;
 
-        proofList.innerHTML = `
-          <li><strong>Archetype:</strong> ${generation.archetype.name}</li>
-          <li><strong>Core processes:</strong> ${generation.processes.map(p=>p.name).join(' · ')}</li>
-          <li><strong>Validation errors:</strong> ${generation.errors.length ? generation.errors.join(', ') : 'None'}</li>`;
+          proofList.innerHTML = `
+            <li><strong>Archetype:</strong> ${generation.archetype.name}</li>
+            <li><strong>Core processes:</strong> ${generation.processes.map(p=>p.name).join(' · ')}</li>
+            <li><strong>Validation errors:</strong> ${generation.errors.length ? generation.errors.join(', ') : 'None'}</li>`;
 
-        processList.innerHTML = generation.ownership.slice(0,12).map(o => `<div class="processItem"><strong>${o.process}</strong><br>${o.step}<br>Owner: <strong>${o.owner}</strong></div>`).join('');
+          processList.innerHTML = generation.ownership.slice(0,12).map(o => `<div class="processItem"><strong>${o.process}</strong><br>${o.step}<br>Owner: <strong>${o.owner}</strong></div>`).join('');
 
-        rolesGrid.innerHTML = generation.selectedRoles.slice(0,10).map(r => {
-          const soul = `${r.soulTemplate?.identity || 'Operator'} - ${r.soulTemplate?.style || 'execution-focused'}`;
-          return `<div class="roleCard" data-role="${r.name}"><div class="title">${r.name}</div><div class="soul">Soul: ${soul}</div><div class="soul">Model: ${roleBible[r.name]?.match(/Recommended LLM\*\*: `([^`]+)`/)?.[1] || 'openrouter/openai/o4-mini'}</div></div>`;
-        }).join('');
+          rolesGrid.innerHTML = generation.selectedRoles.slice(0,10).map(r => {
+            const soul = `${r.soulTemplate?.identity || 'Operator'} - ${r.soulTemplate?.style || 'execution-focused'}`;
+            return `<div class="roleCard" data-role="${r.name}"><div class="title">${r.name}</div><div class="soul">Soul: ${soul}</div><div class="soul">Model: ${roleBible[r.name]?.match(/Recommended LLM\*\*: `([^`]+)`/)?.[1] || 'openrouter/openai/o4-mini'}</div></div>`;
+          }).join('');
 
-        rolesGrid.querySelectorAll('.roleCard').forEach(card => {
-          card.addEventListener('click', ()=>{
-            const role = generation.selectedRoles.find(r=>r.name===card.dataset.role);
-            if(role) openRoleProfile(role, roleBible);
+          rolesGrid.querySelectorAll('.roleCard').forEach(card => {
+            card.addEventListener('click', ()=>{
+              const role = generation.selectedRoles.find(r=>r.name===card.dataset.role);
+              if(role) openRoleProfile(role, roleBible);
+            });
           });
-        });
+        }
       } catch (err) {
         proofList.innerHTML = `<li><strong>Generation data error:</strong> dataset could not be loaded.</li>`;
         rolesGrid.innerHTML = '';
@@ -357,6 +423,11 @@
         done.className = 'muted';
         return;
       }
+      if (!lastGeneration || lastGeneration.blocked) {
+        done.textContent = 'Cannot submit while generation is blocked. Regenerate after fixing inputs.';
+        done.className = 'muted';
+        return;
+      }
 
       const payload = {
         email,
@@ -367,6 +438,7 @@
         archetype: lastGeneration?.archetype?.name || '',
         generatedRoles: (lastGeneration?.selectedRoles || []).map(r=>r.name).join(', '),
         processes: (lastGeneration?.processes || []).map(p=>p.name).join(', '),
+        domain_purity: lastGeneration?.domainPurity || 0,
         confidence: lastGeneration?.confidence || 0,
         error_codes: (lastGeneration?.errors || []).join(', '),
         submittedAt: new Date().toISOString(),
@@ -385,7 +457,7 @@
             _subject: 'New Virtual Company Lead (v2)', _template: 'table', _captcha: 'true', _honey: honeypotInput.value,
             email: payload.email, agents: payload.agents, business_area: payload.business, primary_objective: payload.objective,
             generated_company: payload.generatedCompany, archetype: payload.archetype, generated_roles: payload.generatedRoles,
-            core_processes: payload.processes, confidence: payload.confidence, error_codes: payload.error_codes,
+            core_processes: payload.processes, domain_purity: payload.domain_purity, confidence: payload.confidence, error_codes: payload.error_codes,
             submitted_at: payload.submittedAt, source: payload.source
           })
         });
